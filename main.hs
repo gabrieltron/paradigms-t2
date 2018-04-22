@@ -5,8 +5,8 @@ import System.Exit
 import Control.DeepSeq
 import Control.Exception
 
-pedirItens :: IO ()
-pedirItens = do
+pedirItens :: String -> IO ()
+pedirItens codigoVenda = do
 	print ("Digite o codigo do produto")
 	codigoProduto <- getLine
 	arquivoProdutos <- readFile "arquivoProdutos.db"
@@ -15,40 +15,30 @@ pedirItens = do
 	let registroProduto = buscarRegistro produtos 0 codigoProduto
 	if (registroProduto == []) then do
 		print ("Produto nao existente")
-		-- TODO aqui tem que remover o arquivo temporario
-		exitSuccess
+		return ()
 	else
 		print ("Escolha a quantidade")
-	quantidadeInicialString <- getLine
 
-	-- garante que a quantidade não excederá o estoque mesmo entre vendas
-	appendFile "" "vendatemp"
-	arquivoVendaTemp <- readFile "vendatemp"
-	let vendasTemp = lines arquivoVendaTemp
-	evaluate (force arquivoVendaTemp)
-	let quantidadeInicial = (read quantidadeInicialString::Int)
-	let registroItem = buscarRegistro vendasTemp 0 codigoProduto 
-	if (registroItem == []) then
-		let quantidade = quantidadeInicial
-	else
-		let quantidade = quantidadeInicial + (read (pegarAtributo 1 registroItem)::Int)
-
-	-- agora efetivamente checa se a quantidade não excede o estoque
-	let estoque = read (pegarAtributo registroProduto 2)::Int
-	if (quantidade > estoque) then
+	-- checa se a quantidade não excede o estoque
+	quantidadeString <- getLine
+	let quantidade = (read quantidadeString::Int)
+	let estoque = (read (pegarAtributo registroProduto 2)::Int)
+	if (quantidade > estoque) then do
 		print ("Quantidade excede o estoque")
-		-- TODO aqui tem que remover o arquivo temporario
-		exitSuccess
+		return ()
 	else
 		print ("Digite o desconto aplicado (0 para nenhum)")
 
 	descontoString <- getLine
 	let desconto = (read descontoString::Float)
-	if ((desconto > 10) || (desconto < 0)) then
+	if ((desconto > 10) || (desconto < 0)) then do
 		print ("Desconto deve estrar entre 0% e 10%")
-		-- TODO excluir o arquivo
-		exitSuccess
-	
+		return ()
+	else
+		print (" ")
+	let precoUnitario = read (pegarAtributo registroProduto 3)::Float
+	print (" ")
+
 
 registrarVenda :: IO ()
 registrarVenda = do
@@ -59,8 +49,12 @@ registrarVenda = do
 	if (buscarRegistro clientes 0 codigoCliente == []) then do
 		print ("Cliente nao encontrado")
 		exitSuccess
-	else
-		pedirItens
+	else do
+		arquivoProdutos <- readFile "arquivoProdutos.db"
+		let produtos = lines arquivoProdutos
+		evaluate (force arquivoProdutos)
+		let codigoVenda = novaId produtos
+		pedirItens codigoVenda
 
 main = do
 	print ("Digite a acao desejada.")

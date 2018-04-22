@@ -3,6 +3,7 @@ module OperacoesComuns (novaId, pegarAtributo, quebrarString,
 						where
 
 novaId :: [String] -> String
+novaId [] = "1"
 novaId (a:[]) = show ((read (pegarAtributo (quebrarString ',' a) 0)::Int)+1)::String
 novaId (a:b) = novaId b
 
