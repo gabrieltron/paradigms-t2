@@ -1,60 +1,10 @@
 import OperacoesComuns
 import Cliente
 import Produto
+import Venda
 import System.Exit
 import Control.DeepSeq
 import Control.Exception
-
-pedirItens :: String -> IO ()
-pedirItens codigoVenda = do
-	print ("Digite o codigo do produto")
-	codigoProduto <- getLine
-	arquivoProdutos <- readFile "arquivoProdutos.db"
-	let produtos = lines arquivoProdutos
-	evaluate (force arquivoProdutos)
-	let registroProduto = buscarRegistro produtos 0 codigoProduto
-	if (registroProduto == []) then do
-		print ("Produto nao existente")
-		return ()
-	else
-		print ("Escolha a quantidade")
-
-	-- checa se a quantidade não excede o estoque
-	quantidadeString <- getLine
-	let quantidade = (read quantidadeString::Int)
-	let estoque = (read (pegarAtributo registroProduto 2)::Int)
-	if (quantidade > estoque) then do
-		print ("Quantidade excede o estoque")
-		return ()
-	else
-		print ("Digite o desconto aplicado (0 para nenhum)")
-
-	descontoString <- getLine
-	let desconto = (read descontoString::Float)
-	if ((desconto > 10) || (desconto < 0)) then do
-		print ("Desconto deve estrar entre 0% e 10%")
-		return ()
-	else
-		print (" ")
-	let precoUnitario = read (pegarAtributo registroProduto 3)::Float
-	print (" ")
-
-
-registrarVenda :: IO ()
-registrarVenda = do
-	arquivoClientes <- readFile "cliente.db"
-	let clientes = lines arquivoClientes
-	print ("Digite o codigo do cliente")
-	codigoCliente <- getLine
-	if (buscarRegistro clientes 0 codigoCliente == []) then do
-		print ("Cliente nao encontrado")
-		exitSuccess
-	else do
-		arquivoProdutos <- readFile "arquivoProdutos.db"
-		let produtos = lines arquivoProdutos
-		evaluate (force arquivoProdutos)
-		let codigoVenda = novaId produtos
-		pedirItens codigoVenda
 
 main = do
 	print ("Digite a acao desejada.")

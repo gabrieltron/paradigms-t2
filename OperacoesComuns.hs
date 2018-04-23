@@ -1,6 +1,17 @@
 module OperacoesComuns (novaId, pegarAtributo, quebrarString,
-						buscarRegistro, alterarRegistro, removerRegistro)
+						buscarRegistro, alterarRegistro, removerRegistro,
+						arredondarFloat, date)
 						where
+
+import Text.Printf
+import Data.Time.Clock
+import Data.Time.Calendar
+
+date :: IO (Integer,Int,Int) -- :: (year,month,day)
+date = getCurrentTime >>= return . toGregorian . utctDay
+
+arredondarFloat :: Float -> Float
+arredondarFloat float = read (printf "%.2f" (float :: Float))::Float
 
 novaId :: [String] -> String
 novaId [] = "1"
@@ -20,7 +31,7 @@ quebrarString c s = let (l, s') = break (== c) s
 
 buscarRegistro :: [String] -> Int -> String -> [String]
 buscarRegistro [] _ _ = []
-buscarRegistro (a:b) posicao comparador | (pegarAtributo (quebrarString ',' a) posicao == comparador) = quebrarString ',' a
+buscarRegistro (a:b) posicao comparador | (pegarAtributo (quebrarString ',' a) posicao == comparador) = a:(buscarRegistro b posicao comparador)
 										| otherwise = buscarRegistro b posicao comparador
 
 alterarRegistro :: [String] -> String -> String -> [String]

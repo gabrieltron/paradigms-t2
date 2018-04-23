@@ -1,4 +1,5 @@
-module Produto (adicionarProduto, alterarProduto, removerProduto) where
+module Produto (adicionarProduto, alterarProduto, removerProduto,
+				escreverAlteracaoProduto) where
 
 import OperacoesComuns
 import Control.DeepSeq
@@ -21,8 +22,6 @@ adicionarProduto = do
 
 alterarProduto :: IO ()
 alterarProduto = do
-	arquivo <- readFile "produto.db"
-	let produtos = lines arquivo
 	print ("Digite o id a ser alterado")
 	id <- getLine
 	print ("Digite o novo nome")
@@ -31,10 +30,17 @@ alterarProduto = do
 	quantidade <- getLine
 	print ("Digite o novo preco unitario ou por Kilo")
 	preco <- getLine
+	escreverAlteracaoProduto id nome quantidade preco
+
+escreverAlteracaoProduto :: String -> String -> String -> String -> IO ()
+escreverAlteracaoProduto id nome quantidade preco = do
+	arquivo <- readFile "produto.db"
+	let produtos = lines arquivo
+	evaluate (force arquivo)
 	let novoRegistro = (""++id++",\""++nome++"\","++quantidade++","++preco)
 	let produtosAlterado = alterarRegistro produtos novoRegistro id
-	evaluate (force arquivo)
 	writeFile "produto.db" (unlines produtosAlterado)
+
 
 removerProduto :: IO ()
 removerProduto = do
