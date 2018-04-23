@@ -28,7 +28,7 @@ registrarVenda = do
 		let itensVendaAtual = buscarRegistro itemVenda 1 codigoVenda
 		let total = valorTotal itensVendaAtual
 		(ano, mes, dia) <- date
-		appendFile "venda.db" (""++codigoVenda++","++codigoCliente++","++(show dia)++","++(show mes)++","++(show ano)++","++(show total))
+		appendFile "venda.db" (""++codigoVenda++","++codigoCliente++","++(show dia)++","++(show mes)++","++(show ano)++","++(show total)++"\n")
 		print ("Venda concluida.")
 
 pedirItens :: String -> IO ()
@@ -78,7 +78,7 @@ pedirItens codigoVenda = do
 	let itemVenda = lines itemVendaArquivo
 	evaluate (force itemVendaArquivo)
 	let codigoItem = novaId (buscarRegistro itemVenda 1 codigoVenda)
-	appendFile "itemvenda.db" (""++codigoItem++","++codigoVenda++","++codigoProduto++","++(show precoUnitario)++","++(show desconto)++","++(show quantidade)++","++(show precoComDesconto))
+	appendFile "itemvenda.db" (""++codigoItem++","++codigoVenda++","++codigoProduto++","++(show precoUnitario)++","++(show desconto)++","++(show quantidade)++","++(show precoComDesconto)++"\n")
 
 	-- oferece para registrar um novo item na venda
 	print ("Item registrado. Deseja incluir outro item na venda? [s/n]")
