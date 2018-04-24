@@ -35,7 +35,7 @@ pedirItens :: String -> IO ()
 pedirItens codigoVenda = do
 	print ("Digite o codigo do produto")
 	codigoProduto <- getLine
-	arquivoProdutos <- readFile "arquivoProdutos.db"
+	arquivoProdutos <- readFile "produto.db"
 	let produtos = lines arquivoProdutos
 	evaluate (force arquivoProdutos)
 	let registroProduto = buscarRegistro produtos 0 codigoProduto
