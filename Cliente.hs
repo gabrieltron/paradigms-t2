@@ -19,7 +19,7 @@ adicionarCliente = do
 	sexo <- getLine
 
 	evaluate (force clientesFile)
-	appendFile "cliente.db" (""++codigo++",\""++nome++"\",\""++cidade++"\","++idade++",'"++sexo++"'\n")
+	appendFile "cliente.db" (""++codigo++","++nome++","++cidade++","++idade++","++sexo++"\n")
 
 alterarCliente :: IO ()
 alterarCliente = do
@@ -35,7 +35,7 @@ alterarCliente = do
 	idade <- getLine
 	print ("Digite um novo sexo")
 	sexo <- getLine
-	let novoRegistro = (""++id++",\""++nome++"\",\""++cidade++"\","++idade++",'"++sexo++"'")
+	let novoRegistro = (""++id++","++nome++","++cidade++","++idade++","++sexo)
 	let clientesAlterado = alterarRegistro clientes novoRegistro id 
 	evaluate (force arquivo)
 	writeFile "cliente.db" (unlines clientesAlterado)

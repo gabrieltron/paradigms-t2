@@ -18,7 +18,7 @@ adicionarProduto = do
 	preco <- getLine
 
 	evaluate (force arquivo)
-	appendFile "produto.db" (""++codigo++",\""++nome++"\","++quantidade++","++preco++"\n")
+	appendFile "produto.db" (""++codigo++","++nome++","++quantidade++","++preco++"\n")
 
 alterarProduto :: IO ()
 alterarProduto = do
@@ -37,7 +37,7 @@ escreverAlteracaoProduto id nome quantidade preco = do
 	arquivo <- readFile "produto.db"
 	let produtos = lines arquivo
 	evaluate (force arquivo)
-	let novoRegistro = (""++id++",\""++nome++"\","++quantidade++","++preco)
+	let novoRegistro = (""++id++","++nome++","++quantidade++","++preco)
 	let produtosAlterado = alterarRegistro produtos novoRegistro id
 	writeFile "produto.db" (unlines produtosAlterado)
 

@@ -7,6 +7,12 @@ import Control.DeepSeq
 import Control.Exception
 
 main = do
+	-- cria db caso nao existam
+	appendFile "cliente.db" ""
+	appendFile "produto.db" ""
+	appendFile "venda.db" ""
+	appendFile "itemvenda.db" ""
+
 	print ("Digite a acao desejada.")
 	print ("1- Adicionar registro")
 	print ("2- Alterar registro")

@@ -2,6 +2,7 @@ module Venda (registrarVenda) where
 
 import Control.DeepSeq
 import Control.Exception
+import System.Exit
 import OperacoesComuns
 import Produto
 
@@ -19,20 +20,11 @@ registrarVenda = do
 		evaluate (force arquivoVendas)
 		let codigoVenda = novaId vendas
 		-- registra os itens na venda
-		pedirItens codigoVenda
-
-		-- registra a venda
-		itemVendaArquivo <- readFile "itemvenda.bd"
-		let itemVenda = lines itemVendaArquivo
-		evaluate (force itemVendaArquivo)
-		let itensVendaAtual = buscarRegistro itemVenda 1 codigoVenda
-		let total = valorTotal itensVendaAtual
-		(ano, mes, dia) <- date
-		appendFile "venda.db" (""++codigoVenda++","++codigoCliente++","++(show dia)++","++(show mes)++","++(show ano)++","++(show total)++"\n")
+		pedirItens codigoVenda codigoCliente
 		print ("Venda concluida.")
 
-pedirItens :: String -> IO ()
-pedirItens codigoVenda = do
+pedirItens :: String -> String -> IO ()
+pedirItens codigoVenda codigoCliente = do
 	print ("Digite o codigo do produto")
 	codigoProduto <- getLine
 	arquivoProdutos <- readFile "produto.db"
@@ -41,9 +33,10 @@ pedirItens codigoVenda = do
 	let registroProduto = buscarRegistro produtos 0 codigoProduto
 	if (registroProduto == []) then do
 		print ("Produto nao existente")
-		return ()
+		print ("Venda encerrada")
+		exitSuccess
 	else
-		print (" ")
+		return ()
 
 	-- checa se a quantidade não excede o estoque
 	print ("Escolha a quantidade")
@@ -52,9 +45,10 @@ pedirItens codigoVenda = do
 	let estoque = (read (pegarAtributo registroProduto 2)::Int)
 	if (quantidade > estoque) then do
 		print ("Quantidade excede o estoque")
-		return ()
+		print ("Venda encerrada")
+		exitSuccess
 	else
-		print (" ")
+		return ()
 
 	-- calcula desconto
 	print ("Digite o desconto aplicado (0 para nenhum)")
@@ -62,9 +56,10 @@ pedirItens codigoVenda = do
 	let desconto = arredondarFloat (read descontoString::Float)
 	if ((desconto > 10) || (desconto < 0)) then do
 		print ("Desconto deve estrar entre 0% e 10%")
-		return ()
+		print ("Venda encerrada")
+		exitSuccess
 	else
-		print (" ")
+		return ()
 	let precoUnitario = read (pegarAtributo registroProduto 3)::Float
 	let precoSemDesconto = precoUnitario * (fromIntegral quantidade)
 	let precoComDesconto = arredondarFloat (precoSemDesconto * ((100-desconto) / 100))
@@ -77,16 +72,33 @@ pedirItens codigoVenda = do
 	itemVendaArquivo <- readFile "itemvenda.db"
 	let itemVenda = lines itemVendaArquivo
 	evaluate (force itemVendaArquivo)
-	let codigoItem = novaId (buscarRegistro itemVenda 1 codigoVenda)
+	let codigoItem = novaId (buscarNRegistros itemVenda 1 codigoVenda)
 	appendFile "itemvenda.db" (""++codigoItem++","++codigoVenda++","++codigoProduto++","++(show precoUnitario)++","++(show desconto)++","++(show quantidade)++","++(show precoComDesconto)++"\n")
+	-- atualiza arquivo de vendas
+	processarVenda codigoVenda codigoCliente precoComDesconto
 
 	-- oferece para registrar um novo item na venda
-	print ("Item registrado. Deseja incluir outro item na venda? [s/n]")
+	print ("Venda registrada. Deseja incluir outro item na venda? [s/n]")
 	outroItem <- getLine
 	if (outroItem == "s") then
-		pedirItens codigoVenda
+		pedirItens codigoVenda codigoCliente
 	else
-		print (" ")
+		return ()
+
+processarVenda :: String -> String -> Float -> IO ()
+processarVenda codigoVenda codigoCliente valor = do
+	arquivoVenda <- readFile "venda.db"
+	let vendas = lines arquivoVenda
+	evaluate (force arquivoVenda)
+	let venda = buscarRegistro vendas 0 codigoVenda
+	let total = if (venda == []) then valor else valor + (read (pegarAtributo venda 5)::Float)
+	(ano, mes, dia) <- date
+	let novoRegistro = (""++codigoVenda++","++codigoCliente++","++(show dia)++","++(show mes)++","++(show ano)++","++(show total))
+	if (venda == []) then  -- se o registro em venda ainda não existe, cria
+		appendFile "venda.db" (novoRegistro++"\n")
+	else do -- se não atualiza o existente
+		let vendasAtualizadas = alterarRegistro vendas novoRegistro codigoVenda
+		writeFile "venda.db" (unlines vendasAtualizadas)
 
 valorTotal :: [String] -> Float
 valorTotal [] = 0

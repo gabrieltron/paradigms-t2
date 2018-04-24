@@ -1,6 +1,6 @@
 module OperacoesComuns (novaId, pegarAtributo, quebrarString,
 						buscarRegistro, alterarRegistro, removerRegistro,
-						arredondarFloat, date)
+						arredondarFloat, date, buscarNRegistros)
 						where
 
 import Text.Printf
@@ -29,9 +29,14 @@ quebrarString c s = let (l, s') = break (== c) s
 							[] -> []
 							(_:s'') -> quebrarString c s''
 
+buscarNRegistros :: [String] -> Int -> String -> [String]
+buscarNRegistros [] _ _ = []
+buscarNRegistros (a:b) posicao comparador | (pegarAtributo (quebrarString ',' a) posicao == comparador) = a:(buscarNRegistros b posicao comparador)
+										| otherwise = buscarNRegistros b posicao comparador
+
 buscarRegistro :: [String] -> Int -> String -> [String]
 buscarRegistro [] _ _ = []
-buscarRegistro (a:b) posicao comparador | (pegarAtributo (quebrarString ',' a) posicao == comparador) = a:(buscarRegistro b posicao comparador)
+buscarRegistro (a:b) posicao comparador | (pegarAtributo (quebrarString ',' a) posicao == comparador) = quebrarString ',' a
 										| otherwise = buscarRegistro b posicao comparador
 
 alterarRegistro :: [String] -> String -> String -> [String]
