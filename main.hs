@@ -46,6 +46,26 @@ escolherRemover = do
 	else
 		removerProduto
 
+escolherExibir :: IO ()
+escolherExibir = do
+	print ("Escolha qual relatorio deseja exibir")
+	print ("1- Cliente")
+	print ("2- Produto")
+	print ("3- Vendas de um cliente")
+	exibirString <- getLine
+	let exibir = (read exibirString :: Int)
+	if (exibir == 1) then
+		exibirCliente
+	else
+		if (exibir == 2) then
+			exibirProduto
+		else 
+			if (exibir == 3) then
+				exibirVendasCliente
+			else
+				return ()
+
+
 main = do
 	-- cria db caso nao existam
 	appendFile "cliente.db" ""
@@ -57,6 +77,8 @@ main = do
 	print ("1- Adicionar registro")
 	print ("2- Alterar registro")
 	print ("3- Excluir registro")
+	print ("4- Exibir relatorio")
+
 	escolhaString <- getLine
 	let escolha = (read escolhaString::Int)
 	if (escolha == 1) then do
@@ -64,5 +86,8 @@ main = do
 	else
 		if (escolha == 2) then do
 			escolherEditar
-		else do
-			escolherRemover
+		else 
+			if (escolha == 3) then do
+				escolherRemover
+			else
+				escolherExibir

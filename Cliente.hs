@@ -1,8 +1,9 @@
-module Cliente (adicionarCliente, alterarCliente, removerCliente) where
+module Cliente (adicionarCliente, alterarCliente, removerCliente, exibirCliente) where
 
 import OperacoesComuns
 import Control.DeepSeq
 import Control.Exception
+import Data.Char
 
 adicionarCliente :: IO ()
 adicionarCliente = do
@@ -59,3 +60,23 @@ clienteSemVendas :: [String] -> String -> Bool
 clienteSemVendas [] _ = True
 clienteSemVendas (a:b) id | (pegarAtributo (quebrarString ',' a) 1) == id = False
 					  | otherwise = clienteSemVendas b id
+
+exibirCliente :: IO ()
+exibirCliente = do
+	print ("#Codigo, nome, cidade, idade, sexo")
+	arquivoClientes <- readFile "cliente.db"
+	let clientes = lines arquivoClientes
+	imprimirClientes clientes
+
+imprimirClientes :: [String] -> IO ()
+imprimirClientes [] = return ()
+imprimirClientes (a:b) = do
+	let registro = quebrarString ',' a
+	let codigo = pegarAtributo registro 0
+	let nome = pegarAtributo registro 1
+	let cidade = pegarAtributo registro 2
+	let idade = pegarAtributo registro 3
+	let tempSexo = pegarAtributo registro 4
+	let sexo = if ((toUpper (tempSexo!!0)) == 'F') then "Feminino" else "Masculino"
+	print (codigo++","++nome++","++cidade++","++idade++","++sexo)
+	imprimirClientes b

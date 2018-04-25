@@ -1,5 +1,5 @@
 module Produto (adicionarProduto, alterarProduto, removerProduto,
-				escreverAlteracaoProduto) where
+				escreverAlteracaoProduto, exibirProduto) where
 
 import OperacoesComuns
 import Control.DeepSeq
@@ -61,3 +61,16 @@ produtoSemVendas :: [String] -> String -> Bool
 produtoSemVendas [] _ = True
 produtoSemVendas (a:b) id | (pegarAtributo (quebrarString ',' a) 2) == id = False
 					  | otherwise = produtoSemVendas b id
+
+exibirProduto :: IO ()
+exibirProduto = do
+	print ("#Codigo, nome, estoque, preco unitario ou kilo")
+	arquivoProdutos <- readFile "produto.db"
+	let produtos = lines arquivoProdutos
+	imprimirProdutos produtos
+	
+imprimirProdutos :: [String] -> IO ()
+imprimirProdutos [] = return ()
+imprimirProdutos (a:b) = do
+	print (a)
+	imprimirProdutos b

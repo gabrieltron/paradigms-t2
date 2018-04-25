@@ -1,4 +1,4 @@
-module Venda (registrarVenda) where
+module Venda (registrarVenda, exibirVendasCliente) where
 
 import Control.DeepSeq
 import Control.Exception
@@ -103,3 +103,19 @@ processarVenda codigoVenda codigoCliente valor = do
 valorTotal :: [String] -> Float
 valorTotal [] = 0
 valorTotal (a:b) = (read (pegarAtributo (quebrarString ',' a) 6)::Float)+valorTotal b
+
+exibirVendasCliente :: IO ()
+exibirVendasCliente = do
+	arquivoVendas <- readFile "venda.db"
+	let vendas = lines arquivoVendas
+	print ("Informe o codigo do cliente")
+	cliente <- getLine
+	let vendasCliente = buscarNRegistros vendas 1 cliente
+	print ("#Codigo venda, codigo cliente, dia, mes ,ano, total")
+	imprimirVendas vendasCliente
+
+imprimirVendas :: [String] -> IO ()
+imprimirVendas [] = return ()
+imprimirVendas (a:b) = do
+	print (a)
+	imprimirVendas (b)
