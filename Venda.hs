@@ -1,7 +1,8 @@
-module Venda (registrarVenda, exibirVendasCliente) where
+module Venda (registrarVenda, exibirVendasCliente, exibirVendasPeriodo) where
 
 import Control.DeepSeq
 import Control.Exception
+import Data.Time.Calendar
 import System.Exit
 import OperacoesComuns
 import Produto
@@ -112,10 +113,63 @@ exibirVendasCliente = do
 	cliente <- getLine
 	let vendasCliente = buscarNRegistros vendas 1 cliente
 	print ("#Codigo venda, codigo cliente, dia, mes ,ano, total")
-	imprimirVendas vendasCliente
+	imprimir vendasCliente
 
-imprimirVendas :: [String] -> IO ()
-imprimirVendas [] = return ()
-imprimirVendas (a:b) = do
-	print (a)
-	imprimirVendas (b)
+exibirVendasPeriodo :: IO ()
+exibirVendasPeriodo = do
+	arquivoVendas <- readFile "venda.db"
+	let vendas = lines arquivoVendas
+	arquivoClientes <- readFile "cliente.db"
+	let clientes = lines arquivoClientes
+
+	print ("Digite a data inicial (DD/MM/YYYY)")
+	dataInicialString <- getLine
+	let dataInicial = quebrarString '/' dataInicialString
+	let dia1 = (read (dataInicial!!0)::Int)
+	let mes1 = (read (dataInicial!!1)::Int)
+	let ano1 = (read (dataInicial!!2)::Integer)
+	let data1 = fromGregorian ano1 mes1 dia1
+	print ("Digite a data final (DD/MM/YYYY)")
+	dataFinalString <- getLine
+	let dataFinal = quebrarString '/' dataFinalString
+	let dia2 = (read (dataFinal!!0)::Int)
+	let mes2 = (read (dataFinal!!1)::Int)
+	let ano2 = (read (dataFinal!!2)::Integer)
+	let data2 = fromGregorian ano2 mes2 dia2
+
+	let vendasPeriodo = buscarVendasPeriodo vendas data1 data2
+	let vendasPeriodoFormatado = formatarVendasPriodo vendasPeriodo clientes
+	print ("#Codigo venda, nome cliente, data, total")
+	imprimir vendasPeriodoFormatado
+
+buscarVendasPeriodo :: [String] -> Day -> Day -> [String]
+buscarVendasPeriodo [] _ _ = []
+buscarVendasPeriodo (a:b) dataInicial dataFinal = do
+	let venda = quebrarString ',' a
+	let diaVenda = (read (pegarAtributo venda 2)::Int)
+	let mesVenda = (read (pegarAtributo venda 3)::Int)
+	let anoVenda = (read (pegarAtributo venda 4)::Integer)
+	let dataVenda = fromGregorian anoVenda mesVenda diaVenda
+
+	if (((diffDays dataVenda dataInicial) >= 0) && ((diffDays dataFinal dataVenda) >= 0)) then
+		a:buscarVendasPeriodo b dataInicial dataFinal
+	else
+		buscarVendasPeriodo b dataInicial dataFinal
+
+formatarVendasPriodo :: [String] -> [String] -> [String]
+formatarVendasPriodo [] _ = []
+formatarVendasPriodo (a:b) clientes = do
+	let venda = quebrarString ',' a
+
+	let codigoCliente = pegarAtributo venda 1
+	let cliente = buscarRegistro clientes 0 codigoCliente
+	let nomeCliente = pegarAtributo cliente 1
+
+	let codigoVenda = pegarAtributo venda 0
+	let diaVenda = pegarAtributo venda 2
+	let mesVenda = pegarAtributo venda 3
+	let anoVenda = pegarAtributo venda 4
+	let total = pegarAtributo venda 5
+
+	let vendaString = (codigoVenda++","++nomeCliente++","++diaVenda++"/"++mesVenda++"/"++anoVenda++","++total)
+	vendaString:formatarVendasPriodo b clientes

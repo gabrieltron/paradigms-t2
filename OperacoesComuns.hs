@@ -1,6 +1,7 @@
 module OperacoesComuns (novaId, pegarAtributo, quebrarString,
 						buscarRegistro, alterarRegistro, removerRegistro,
-						arredondarFloat, date, buscarNRegistros)
+						arredondarFloat, date, buscarNRegistros,
+						imprimir)
 						where
 
 import Text.Printf
@@ -48,3 +49,9 @@ removerRegistro :: [String] -> String -> [String]
 removerRegistro [] _ = []
 removerRegistro (a:b) id | (pegarAtributo (quebrarString ',' a) 0) == id = removerRegistro b id
 						 | otherwise = a:(removerRegistro b id)
+
+imprimir :: [String] -> IO ()
+imprimir [] = return ()
+imprimir (a:b) = do
+	print (a)
+	imprimir (b)

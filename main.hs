@@ -52,6 +52,7 @@ escolherExibir = do
 	print ("1- Cliente")
 	print ("2- Produto")
 	print ("3- Vendas de um cliente")
+	print ("4 - Exibir vendas de um periodo")
 	exibirString <- getLine
 	let exibir = (read exibirString :: Int)
 	if (exibir == 1) then
@@ -63,7 +64,7 @@ escolherExibir = do
 			if (exibir == 3) then
 				exibirVendasCliente
 			else
-				return ()
+				exibirVendasPeriodo
 
 
 main = do

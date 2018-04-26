@@ -16,9 +16,10 @@ adicionarProduto = do
 	quantidade <- getLine
 	print ("Digite o preco unitario ou por Kilo")
 	preco <- getLine
+	let precoArredondado = (show (arredondarFloat (read preco::Float)))
 
 	evaluate (force arquivo)
-	appendFile "produto.db" (""++codigo++","++nome++","++quantidade++","++preco++"\n")
+	appendFile "produto.db" (""++codigo++","++nome++","++quantidade++","++precoArredondado++"\n")
 
 alterarProduto :: IO ()
 alterarProduto = do
@@ -67,10 +68,5 @@ exibirProduto = do
 	print ("#Codigo, nome, estoque, preco unitario ou kilo")
 	arquivoProdutos <- readFile "produto.db"
 	let produtos = lines arquivoProdutos
-	imprimirProdutos produtos
-	
-imprimirProdutos :: [String] -> IO ()
-imprimirProdutos [] = return ()
-imprimirProdutos (a:b) = do
-	print (a)
-	imprimirProdutos b
+	imprimir produtos
+
