@@ -1,12 +1,16 @@
 module OperacoesComuns (novaId, pegarAtributo, quebrarString,
 						buscarRegistro, alterarRegistro, removerRegistro,
 						arredondarFloat, date, buscarNRegistros,
-						imprimir, criarData)
+						imprimir, criarData, odernarDecrescente)
 						where
 
 import Text.Printf
 import Data.Time.Clock
 import Data.Time.Calendar
+
+odernarDecrescente :: [String] -> Int -> [String]
+odernarDecrescente (a:b) posicao = do
+	
 
 criarData :: String -> Day
 criarData dataString = do

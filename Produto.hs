@@ -80,28 +80,37 @@ exibirMaisVendidos = do
 	let dataFim = criarData dataFinalString
 
 	let informacoes = pegarInfomacoesPeriodo produtos itemVendas vendas dataInicio dataFim
+	print informacoes
 
-pegarInfomacoesPeriodo :: [String] -> [String] -> Day -> Day -> [String]
+pegarInfomacoesPeriodo :: [String] -> [String] -> [String] -> Day -> Day -> [String]
+pegarInfomacoesPeriodo [] _ _ _ _ = []
 pegarInfomacoesPeriodo (a:b) itemVendas todasVendas dataInicio dataFim = do
 	let produto = quebrarString ',' a
 	let codigo = pegarAtributo produto 0
 	let vendasIndividuais = buscarNRegistros itemVendas 2 codigo
-	let vendas = filtrarPorData vendasIndividuais todasVendas dataInicio dataFim
-	let faturamentoTotal = calcularFaturamentoTotal vendas
-	let quantidadeVendida = calcularQuantidadeVendida vendas
-	let mediaFloat = (fromInteger faturamentoTotal) / (fromInteger quantidadeVendida)
-	let media = arredondarFloat mediaFloat
-	let vendasIndividuais = calcularVendasIndividuais vendas []
+	let vendas = buscarVendasEmPeriodo vendasIndividuais todasVendas dataInicio dataFim
+	if (vendas /= []) then do
+		let faturamentoTotal = calcularFaturamentoTotal vendas
+		let quantidadeVendida = calcularQuantidadeVendida vendas
+		let mediaFloat = faturamentoTotal / (fromInteger quantidadeVendida)
+		let media = arredondarFloat mediaFloat
+		let vendasIndividuais = calcularVendasIndividuais vendas []
+		let informacoes = codigo ++ "," ++ (pegarAtributo produto 1) ++ "," ++ (show quantidadeVendida::String) ++ ","  ++
+			(show vendasIndividuais::String) ++ "," ++ (show faturamentoTotal::String) ++ "," ++ (show media::String)
+		informacoes:pegarInfomacoesPeriodo b itemVendas todasVendas dataInicio dataFim
+	else
+		pegarInfomacoesPeriodo b itemVendas todasVendas dataInicio dataFim
 
 calcularVendasIndividuais :: [String] -> [Int] -> Int
 calcularVendasIndividuais [] _ = 0
 calcularVendasIndividuais (a:b) historico = do
-	let codigoVenda = (read (pegarAtributo a 1)::Int)
-	if (not (estaEm historico codigoVenda)) then
-		let novoHistorico = codigoVenda++historico
+	let venda = quebrarString ',' a
+	let codigoVenda = (read (pegarAtributo venda 1)::Int)
+	if (not (estaEm historico codigoVenda)) then do
+		let novoHistorico = codigoVenda:historico
 		1+calcularVendasIndividuais b novoHistorico
 	else
-		calcularVendasIndividuais b novoHistorico
+		calcularVendasIndividuais b historico
 
 
 estaEm :: [Int] -> Int -> Bool
@@ -111,16 +120,18 @@ estaEm (a:b) valor = if (a == valor) then
 					 else
 					 	estaEm b valor
 
-calcularQuantidadeVendida :: [String] -> Int
+calcularQuantidadeVendida :: [String] -> Integer
 calcularQuantidadeVendida [] = 0
 calcularQuantidadeVendida (a:b) = do
-	let quantidadeVendida = (read (pegarAtributo a 5)::Int)
+	let venda = quebrarString ',' a
+	let quantidadeVendida = (read (pegarAtributo venda 5)::Integer)
 	quantidadeVendida + calcularQuantidadeVendida b
 
-calcularFaturamentoTotal :: [String] -> Int
+calcularFaturamentoTotal :: [String] -> Float
 calcularFaturamentoTotal [] = 0
 calcularFaturamentoTotal (a:b) = do
-	let faturamento = (read (pegarAtributo a 6)::Int)
+	let venda = quebrarString ',' a
+	let faturamento = (read (pegarAtributo venda 6)::Float)
 	faturamento + calcularFaturamentoTotal b
 
 
@@ -128,7 +139,7 @@ buscarVendasEmPeriodo :: [String] -> [String] -> Day -> Day -> [String]
 buscarVendasEmPeriodo [] _ _ _ = []
 buscarVendasEmPeriodo (a:b) todasVendas dataInicio dataFim = do
 	let vendaProduto = quebrarString ',' a
-	let codigoVendaProduto = pegarAtributo 1 vendaProduto
+	let codigoVendaProduto = pegarAtributo vendaProduto 1
 	let venda = buscarRegistro todasVendas 0 codigoVendaProduto
 	let diaVenda = pegarAtributo venda 2
 	let mesVenda = pegarAtributo venda 3
