@@ -124,18 +124,10 @@ exibirVendasPeriodo = do
 
 	print ("Digite a data inicial (DD/MM/YYYY)")
 	dataInicialString <- getLine
-	let dataInicial = quebrarString '/' dataInicialString
-	let dia1 = (read (dataInicial!!0)::Int)
-	let mes1 = (read (dataInicial!!1)::Int)
-	let ano1 = (read (dataInicial!!2)::Integer)
-	let data1 = fromGregorian ano1 mes1 dia1
+	let data1 = criarData dataInicialString
 	print ("Digite a data final (DD/MM/YYYY)")
 	dataFinalString <- getLine
-	let dataFinal = quebrarString '/' dataFinalString
-	let dia2 = (read (dataFinal!!0)::Int)
-	let mes2 = (read (dataFinal!!1)::Int)
-	let ano2 = (read (dataFinal!!2)::Integer)
-	let data2 = fromGregorian ano2 mes2 dia2
+	let data2 = criarData dataFinalString
 
 	let vendasPeriodo = buscarVendasPeriodo vendas data1 data2
 	let vendasPeriodoFormatado = formatarVendasPriodo vendasPeriodo clientes

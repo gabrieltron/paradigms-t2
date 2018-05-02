@@ -4,6 +4,7 @@ module Produto (adicionarProduto, alterarProduto, removerProduto,
 import OperacoesComuns
 import Control.DeepSeq
 import Control.Exception
+import Data.List
 import Data.Time.Calendar
 
 adicionarProduto :: IO ()
@@ -80,7 +81,10 @@ exibirMaisVendidos = do
 	let dataFim = criarData dataFinalString
 
 	let informacoes = pegarInfomacoesPeriodo produtos itemVendas vendas dataInicio dataFim
-	print informacoes
+	let informacoesCrescente = sortBy (\x y-> compare (read ((quebrarString ',' x)!!4)::Float) (read ((quebrarString ',' y)!!4)::Float)) informacoes
+	let informacoesDecrescente = inverterLista informacoesCrescente
+	print ("#Codigo, nome, quantidade vendida, quantidade vendas em que esta presente, faturamento total, media de preco por unidade")
+	imprimir informacoesDecrescente
 
 pegarInfomacoesPeriodo :: [String] -> [String] -> [String] -> Day -> Day -> [String]
 pegarInfomacoesPeriodo [] _ _ _ _ = []
