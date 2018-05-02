@@ -1,12 +1,20 @@
 module OperacoesComuns (novaId, pegarAtributo, quebrarString,
 						buscarRegistro, alterarRegistro, removerRegistro,
 						arredondarFloat, date, buscarNRegistros,
-						imprimir)
+						imprimir, criarData)
 						where
 
 import Text.Printf
 import Data.Time.Clock
 import Data.Time.Calendar
+
+criarData :: String -> Day
+criarData dataString = do
+	let dataInicial = quebrarString '/' dataString
+	let dia1 = (read (dataInicial!!0)::Int)
+	let mes1 = (read (dataInicial!!1)::Int)
+	let ano1 = (read (dataInicial!!2)::Integer)
+	fromGregorian ano1 mes1 dia1
 
 date :: IO (Integer,Int,Int) -- :: (year,month,day)
 date = getCurrentTime >>= return . toGregorian . utctDay

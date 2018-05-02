@@ -1,9 +1,10 @@
 module Produto (adicionarProduto, alterarProduto, removerProduto,
-				escreverAlteracaoProduto, exibirProduto) where
+				escreverAlteracaoProduto, exibirProduto, exibirMaisVendidos) where
 
 import OperacoesComuns
 import Control.DeepSeq
 import Control.Exception
+import Data.Time.Calendar
 
 adicionarProduto :: IO ()
 adicionarProduto = do
@@ -62,6 +63,81 @@ produtoSemVendas :: [String] -> String -> Bool
 produtoSemVendas [] _ = True
 produtoSemVendas (a:b) id | (pegarAtributo (quebrarString ',' a) 2) == id = False
 					  | otherwise = produtoSemVendas b id
+
+exibirMaisVendidos :: IO ()
+exibirMaisVendidos = do
+	arquivoProdutos <- readFile "produto.db"
+	let produtos = lines arquivoProdutos
+	arquivoItemVendas <- readFile "itemvenda.db"
+	let itemVendas = lines arquivoItemVendas
+	arquivoVendas <- readFile "venda.db"
+	let vendas = lines arquivoVendas
+	print ("Digite a data inicial (DD/MM/YYYY)")
+	dataInicialString <- getLine
+	let dataInicio = criarData dataInicialString
+	print ("Digite a data final (DD/MM/YYYY)")
+	dataFinalString <- getLine
+	let dataFim = criarData dataFinalString
+
+	let informacoes = pegarInfomacoesPeriodo produtos itemVendas vendas dataInicio dataFim
+
+pegarInfomacoesPeriodo :: [String] -> [String] -> Day -> Day -> [String]
+pegarInfomacoesPeriodo (a:b) itemVendas todasVendas dataInicio dataFim = do
+	let produto = quebrarString ',' a
+	let codigo = pegarAtributo produto 0
+	let vendasIndividuais = buscarNRegistros itemVendas 2 codigo
+	let vendas = filtrarPorData vendasIndividuais todasVendas dataInicio dataFim
+	let faturamentoTotal = calcularFaturamentoTotal vendas
+	let quantidadeVendida = calcularQuantidadeVendida vendas
+	let mediaFloat = (fromInteger faturamentoTotal) / (fromInteger quantidadeVendida)
+	let media = arredondarFloat mediaFloat
+	let vendasIndividuais = calcularVendasIndividuais vendas []
+
+calcularVendasIndividuais :: [String] -> [Int] -> Int
+calcularVendasIndividuais [] _ = 0
+calcularVendasIndividuais (a:b) historico = do
+	let codigoVenda = (read (pegarAtributo a 1)::Int)
+	if (not (estaEm historico codigoVenda)) then
+		let novoHistorico = codigoVenda++historico
+		1+calcularVendasIndividuais b novoHistorico
+	else
+		calcularVendasIndividuais b novoHistorico
+
+
+estaEm :: [Int] -> Int -> Bool
+estaEm [] _ = False
+estaEm (a:b) valor = if (a == valor) then
+						True
+					 else
+					 	estaEm b valor
+
+calcularQuantidadeVendida :: [String] -> Int
+calcularQuantidadeVendida [] = 0
+calcularQuantidadeVendida (a:b) = do
+	let quantidadeVendida = (read (pegarAtributo a 5)::Int)
+	quantidadeVendida + calcularQuantidadeVendida b
+
+calcularFaturamentoTotal :: [String] -> Int
+calcularFaturamentoTotal [] = 0
+calcularFaturamentoTotal (a:b) = do
+	let faturamento = (read (pegarAtributo a 6)::Int)
+	faturamento + calcularFaturamentoTotal b
+
+
+buscarVendasEmPeriodo :: [String] -> [String] -> Day -> Day -> [String]
+buscarVendasEmPeriodo [] _ _ _ = []
+buscarVendasEmPeriodo (a:b) todasVendas dataInicio dataFim = do
+	let vendaProduto = quebrarString ',' a
+	let codigoVendaProduto = pegarAtributo 1 vendaProduto
+	let venda = buscarRegistro todasVendas 0 codigoVendaProduto
+	let diaVenda = pegarAtributo venda 2
+	let mesVenda = pegarAtributo venda 3
+	let anoVenda = pegarAtributo venda 4
+	let dataVenda = criarData (diaVenda ++ "/" ++ mesVenda ++ "/" ++ anoVenda)
+	if (((diffDays dataVenda dataInicio) >= 0) && ((diffDays dataFim dataVenda) >= 0)) then
+		a:buscarVendasEmPeriodo b todasVendas dataInicio dataFim
+	else
+		buscarVendasEmPeriodo b todasVendas dataInicio dataFim
 
 exibirProduto :: IO ()
 exibirProduto = do
