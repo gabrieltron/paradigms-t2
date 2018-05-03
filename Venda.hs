@@ -165,3 +165,4 @@ formatarVendasPriodo (a:b) clientes = do
 
 	let vendaString = (codigoVenda++","++nomeCliente++","++diaVenda++"/"++mesVenda++"/"++anoVenda++","++total)
 	vendaString:formatarVendasPriodo b clientes
+

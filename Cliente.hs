@@ -1,9 +1,13 @@
-module Cliente (adicionarCliente, alterarCliente, removerCliente, exibirCliente) where
+module Cliente (adicionarCliente, alterarCliente, removerCliente,
+				exibirCliente, exibirMaisCompraram) where
 
-import OperacoesComuns
 import Control.DeepSeq
 import Control.Exception
+import Data.Time.Calendar
+import Data.List
 import Data.Char
+
+import OperacoesComuns
 
 adicionarCliente :: IO ()
 adicionarCliente = do
@@ -80,3 +84,58 @@ imprimirClientes (a:b) = do
 	let sexo = if ((toUpper (tempSexo!!0)) == 'F') then "Feminino" else "Masculino"
 	print (codigo++","++nome++","++cidade++","++idade++","++sexo)
 	imprimirClientes b
+
+exibirMaisCompraram :: IO ()
+exibirMaisCompraram = do
+	arquivoClientes <- readFile "cliente.db"
+	let clientes = lines arquivoClientes
+	arquivoVendas <- readFile "venda.db"
+	let vendas = lines arquivoVendas
+	print ("Digite a data inicial (DD/MM/YYYY)")
+	dataInicialString <- getLine
+	let dataInicio = criarData dataInicialString
+	print ("Digite a data final (DD/MM/YYYY)")
+	dataFinalString <- getLine
+	let dataFim = criarData dataFinalString
+
+	let informacoes = pegarInformacoesMaisCompram clientes vendas dataInicio dataFim
+	let informacoesCrescente = sortBy (\x y-> compare (read ((quebrarString ',' x)!!2)::Float) (read ((quebrarString ',' y)!!2)::Float)) informacoes
+	let informacoesDecrescente = inverterLista informacoesCrescente
+	print ("#Codigo, nome, faturamento total")
+	imprimir informacoesDecrescente
+
+pegarInformacoesMaisCompram :: [String] -> [String] -> Day -> Day -> [String]
+pegarInformacoesMaisCompram [] _ _ _ = []
+pegarInformacoesMaisCompram (a:b) vendas dataInicio dataFim = do
+	let cliente = quebrarString ',' a
+	let codigo = pegarAtributo cliente 0
+	let vendasCliente = buscarNRegistros vendas 1 codigo
+	let vendasNoPeriodo = filtrarDataVendas vendasCliente dataInicio dataFim
+	if (vendasNoPeriodo /= []) then do
+		let nome = pegarAtributo cliente 1
+		let faturamentoTotal = calcularFaturamentoTotal vendasNoPeriodo
+		let informacoes = codigo ++ "," ++ nome ++ "," ++ (show faturamentoTotal)
+		informacoes:pegarInformacoesMaisCompram b vendas dataInicio dataFim
+	else
+		pegarInformacoesMaisCompram b vendas dataInicio dataFim
+
+calcularFaturamentoTotal :: [String] -> Float
+calcularFaturamentoTotal [] = 0
+calcularFaturamentoTotal (a:b) = do
+	let venda = quebrarString ',' a
+	let faturamento = (read (pegarAtributo venda 5)::Float)
+	faturamento+calcularFaturamentoTotal b
+
+filtrarDataVendas :: [String] -> Day -> Day -> [String]
+filtrarDataVendas [] _ _ = []
+filtrarDataVendas (a:b) dataInicio dataFim = do
+	let venda = quebrarString ',' a
+	let diaVenda = (read (pegarAtributo venda 2)::Int)
+	let mesVenda = (read (pegarAtributo venda 3)::Int)
+	let anoVenda = (read (pegarAtributo venda 4)::Integer)
+	let dataVenda = fromGregorian anoVenda mesVenda diaVenda 
+
+	if (((diffDays dataVenda dataInicio) >= 0) && ((diffDays dataFim dataVenda) >= 0)) then
+		a:filtrarDataVendas b dataInicio dataFim
+	else
+		filtrarDataVendas b dataInicio dataFim
